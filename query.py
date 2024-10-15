@@ -2,7 +2,11 @@
 import tkinter
 from tkinter import ttk
 import tkinter.messagebox
-from data import rhdata
+from data import rhdata, rrdata
+
+# 还需要按照rh和rr更改jr和jh函数。
+# 还需要录入jrdata和jhdata。
+# 还需要在img文件夹中输入对应图片，命名格式1/2/3/4.{id}.1/2.png
 
 rh_dict = {'压力':('0.1MPa', '0.3MPa', '0.5MPa'),
            '转速':('6630rpm', '8565rpm', '9210rpm'),
@@ -51,12 +55,29 @@ def rhget_result():
         result_window.mainloop()
     
 def rrget_result():
-    result_dict=[]
+    result_dict=()
     i=1
     for key in rr_dict.keys():
-        result_dict.append(rr_dict[key].get())
+        result_dict = result_dict + (rr_dict[key].get(), )
         i = i+1
-    print(result_dict)
+    id = rrdata.get(result_dict, 'id not found')
+    if id == 'id not found':
+        tkinter.messagebox.showwarning('提示', '您所选择的组合不存在。\n请重新输入。')
+    else:
+        result_window = tkinter.Toplevel()
+        result_window.title('查询结果')
+        result_window.geometry('1600x600')
+        label1 = tkinter.Label(result_window, text='流域流动截面云图', font=('黑体', 20))
+        label1.grid(row=0, column=0)
+        result1 = tkinter.PhotoImage(file=f'source\\img\\2.{id}.1.png')
+        result1_label = tkinter.Label(result_window, image=result1)
+        result1_label.grid(row=1, column=0)
+        label2 = tkinter.Label(result_window, text='密封副温度分布云图', font=('黑体', 20))
+        label2.grid(row=0, column=1)
+        result2 = tkinter.PhotoImage(file=f'source\\img\\2.{id}.2.png')
+        result2_label = tkinter.Label(result_window, image=result2)
+        result2_label.grid(row=1, column=1)
+        result_window.mainloop()
     
 def jhget_result():
     result_dict=[]
