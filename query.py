@@ -2,32 +2,14 @@
 import tkinter
 from tkinter import ttk
 import tkinter.messagebox
-from data import rhdata, rrdata
+from data import rhdata, rrdata, rh_dict, rr_dict, jh_dict, jr_dict, title
+import os
+
+# 资源：结果图片
 
 # 还需要按照rh和rr更改jr和jh函数。
 # 还需要录入jrdata和jhdata。
 # 还需要在img文件夹中输入对应图片，命名格式1/2/3/4.{id}.1/2.png
-
-rh_dict = {'压力':('0.1MPa', '0.3MPa', '0.5MPa'),
-           '转速':('6630rpm', '8565rpm', '9210rpm'),
-           '织构':('无织构', '激光脸'),
-           '节流环间隙':('无节流环', '0.1mm', '0.2mm', '0.3mm'),
-           '喷淋管径':('0.5mm', '0.6mm', '0.7mm'),
-           '喷淋角度':('38°', '35°', '41°'),
-           '喷淋管数':('1', '2')}
-rr_dict = {'压力':('0.1MPa', '0.2MPa', '0.3MPa'),
-           '转速':('6630rpm', '8565rpm', '9210rpm'),
-           '织构':('无织构', '人字槽', '螺旋槽'),
-           '出口直径':('2mm', '3mm')}
-jh_dict = {'转速':('18835rpm', '21255rpm', '22600rpm', '23950rpm', '25560rpm', '26906rpm'),
-           '压力':('0.25MPa', '0.3MPa', '0.35MPa'),
-           '入口管径':('0.7mm', '0.8mm'),
-           '织构':('无织构', '激光脸(新)'),
-           '喷淋角度':('14.5°', '11.5°', '17.5°')}
-jr_dict = {'转速':('18835rpm', '21255rpm', '22600rpm', '23950rpm', '25560rpm', '26906rpm'),
-           '流速':('1900-2000ml/min', '2300-2400ml/min'),
-           '织构':('无织构', '激光脸(新)'),
-           '进口管径':('1mm', '1.5mm')}
 
 def rhget_result():
     result_dict=()
@@ -36,8 +18,12 @@ def rhget_result():
         result_dict = result_dict + (rh_dict[key].get(), )
         i = i+1
     id = rhdata.get(result_dict, 'id not found')
+    # 在 没找到id 或 没找到id对应文件（结果未录入）时展示
     if id == 'id not found':
         tkinter.messagebox.showwarning('提示', '您所选择的组合不存在。\n请重新输入。')
+    elif not os.path.exists(f'source\\img\\1.{id}.1.png'):
+        tkinter.messagebox.showwarning('提示', '您所选择的模型计算结果未录入，请等待录入。')
+    # 展示结果
     else:
         result_window = tkinter.Toplevel()
         result_window.title('查询结果')
@@ -63,6 +49,8 @@ def rrget_result():
     id = rrdata.get(result_dict, 'id not found')
     if id == 'id not found':
         tkinter.messagebox.showwarning('提示', '您所选择的组合不存在。\n请重新输入。')
+    elif not os.path.exists(f'source\\img\\2.{id}.1.png'):
+        tkinter.messagebox.showwarning('提示', '您所选择的模型计算结果未录入，请等待录入。')
     else:
         result_window = tkinter.Toplevel()
         result_window.title('查询结果')
@@ -128,7 +116,6 @@ def query_window():
     frame4.grid(row=1, column=3)
     
     frame = [frame1, frame2, frame3, frame4]
-    title = ['燃油增压泵滑油端', '燃油增压泵燃油端', '加力燃油泵滑油端', '加力燃油泵燃油端']
 
     ddict = [rh_dict, rr_dict, jh_dict, jr_dict]
     func = [rhget_result, rrget_result, jhget_result, jrget_result]
