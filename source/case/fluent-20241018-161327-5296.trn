@@ -321,3 +321,7 @@ Done.
 (cx-gui-do cx-activate-item "NavigationPane*Frame2*Table1*List_Tree2")
 (cx-gui-do cx-set-list-tree-selections "NavigationPane*Frame2*Table1*List_Tree2" (list "Setup|Boundary Conditions|Inlet|inlet (velocity-inlet, id=14)"))
 (cx-gui-do cx-activate-item "Velocity Inlet*PanelButtons*PushButton2(Cancel)")
+/exit y
+(cx-gui-do cx-activate-item "Question*OK")
+Auto-Transcript Stop Time:  20:12:36, 18 Oct 2024 中国标准时间 
+Total Transcript Time: 3 Hour 59 Minute 9 Second.

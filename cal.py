@@ -15,12 +15,14 @@ def start_fluent():
     Thread(target=run_fluent).start()
     
 # 验证输入合法（仅数字）
-def validate_input(entry):
+def validate_input(entry, i):
     input_text = entry.get()
-    if not input_text.isdigit():
+    try:
+        float(input_text)
+        return True
+    except ValueError:
         tkinter.messagebox.showwarning('提示', '请输入数字。')
-    # else:
-    #     tkinter.messagebox.showwarning('提示', '请输入数字。')
+        return False
 
 # 开启并进行fluent计算
 def rhget_result():
@@ -77,8 +79,9 @@ def cal_window():
         for key, value in ddict[i].items():
             label = tkinter.Label(frame[i], text=key, pady=6, bg='#DAE3F3')
             label.grid(row=j, column=0)
-            if key == '压力' or key == '转速': # , validatecommand=lambda:validate_input(ddict[i][key])
-                ddict[i][key] = tkinter.Entry(frame[i], width=13)
+            if key in ['压力', '转速']:
+                ddict[i][key] = tkinter.Entry(frame[i], width=13, validate='focusout', 
+                                              validatecommand=lambda i=i, key=key:validate_input(ddict[i][key], i))
                 ddict[i][key].insert(0, '0.00')
                 ddict[i][key].grid(row=j, column=1)
                 j = j+1
