@@ -2,8 +2,6 @@ import tkinter
 from tkinter import ttk
 from threading import Thread
 import ansys.fluent.core as pyfluent
-from data import title, rhdata, rrdata, rh_dict, rr_dict, jh_dict, jr_dict
-
 # 资源：有对应模型的cas文件（非全部cas）
 
 def run_fluent():
@@ -34,7 +32,7 @@ def jhget_result():
 def jrget_result():
     print('开始计算jr')
     
-def cal_window():
+def cal_window(shared_data):
     master = tkinter.Toplevel()
     master.title('机械密封装置仿真APP:流体传热仿真')
     master.geometry('1000x600')
@@ -67,12 +65,12 @@ def cal_window():
 
     frame = [frame1, frame2, frame3, frame4]
     
-    ddict = [rh_dict, rr_dict, jh_dict, jr_dict]
+    ddict = [shared_data.rh_dict, shared_data.rr_dict, shared_data.jh_dict, shared_data.jr_dict]
     func = [rhget_result, rrget_result, jhget_result, jrget_result]
     
     # 创建label和combobox
     for i in range(4):
-        title_label = tkinter.Label(frame[i], text=title[i], font=('黑体',18,'bold'), bg='#DAE3F3',
+        title_label = tkinter.Label(frame[i], text=shared_data.title[i], font=('黑体',18,'bold'), bg='#DAE3F3',
                                     foreground='#0a1220')
         title_label.grid(row=0, column=0, columnspan=2)
         j=1
@@ -91,7 +89,7 @@ def cal_window():
                 ddict[i][key].current(0)
                 ddict[i][key].grid(row=j, column=1)
                 j = j+1
-        run_button = tkinter.Button(frame[i], text=f'{title[i]}\n获取结果', font=('宋体',14,'bold'), 
+        run_button = tkinter.Button(frame[i], text=f'{shared_data.title[i]}\n获取结果', font=('宋体',14,'bold'), 
                                     bg='#acafc9', command=func[i])
         run_button.grid(row=j, column=0, columnspan=2)
         

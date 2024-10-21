@@ -2,7 +2,6 @@
 import tkinter
 from tkinter import ttk
 import tkinter.messagebox
-from data import rhdata, rrdata, rh_dict, rr_dict, jh_dict, jr_dict, title
 import os
 
 # 资源：结果图片
@@ -11,13 +10,13 @@ import os
 # 还需要录入jrdata和jhdata。
 # 还需要在img文件夹中输入对应图片，命名格式1/2/3/4.{id}.1/2.png
 
-def rhget_result():
+def rhget_result(shared_data):
     result_dict=()
     i=1
-    for key in rh_dict.keys():
-        result_dict = result_dict + (rh_dict[key].get(), )
+    for key in shared_data.rh_dict.keys():
+        result_dict = result_dict + (shared_data.rh_dict[key].get(), )
         i = i+1
-    id = rhdata.get(result_dict, 'id not found')
+    id = shared_data.rhdata.get(result_dict, 'id not found')
     # 在 没找到id 或 没找到id对应文件（结果未录入）时展示
     if id == 'id not found':
         tkinter.messagebox.showwarning('提示', '您所选择的组合不存在。\n请重新输入。')
@@ -40,13 +39,13 @@ def rhget_result():
         result2_label.grid(row=1, column=1)
         result_window.mainloop()
     
-def rrget_result():
+def rrget_result(shared_data):
     result_dict=()
     i=1
-    for key in rr_dict.keys():
-        result_dict = result_dict + (rr_dict[key].get(), )
+    for key in shared_data.rr_dict.keys():
+        result_dict = result_dict + (shared_data.rr_dict[key].get(), )
         i = i+1
-    id = rrdata.get(result_dict, 'id not found')
+    id = shared_data.rrdata.get(result_dict, 'id not found')
     if id == 'id not found':
         tkinter.messagebox.showwarning('提示', '您所选择的组合不存在。\n请重新输入。')
     elif not os.path.exists(f'source\\img\\2.{id}.1.png'):
@@ -67,23 +66,23 @@ def rrget_result():
         result2_label.grid(row=1, column=1)
         result_window.mainloop()
     
-def jhget_result():
+def jhget_result(shared_data):
     result_dict=[]
     i=1
-    for key in jh_dict.keys():
-        result_dict.append(jh_dict[key].get())
+    for key in shared_data.jh_dict.keys():
+        result_dict.append(shared_data.jh_dict[key].get())
         i = i+1
     print(result_dict)
     
-def jrget_result():
+def jrget_result(shared_data):
     result_dict=[]
     i=1
-    for key in jr_dict.keys():
-        result_dict.append(jr_dict[key].get())
+    for key in shared_data.jr_dict.keys():
+        result_dict.append(shared_data.jr_dict[key].get())
         i = i+1
     print(result_dict)
 
-def query_window():
+def query_window(shared_data):
     master = tkinter.Toplevel()
     master.title('机械密封装置仿真APP:计算结果查询')
     master.geometry('1000x600')
@@ -117,12 +116,15 @@ def query_window():
     
     frame = [frame1, frame2, frame3, frame4]
 
-    ddict = [rh_dict, rr_dict, jh_dict, jr_dict]
-    func = [rhget_result, rrget_result, jhget_result, jrget_result]
+    ddict = [shared_data.rh_dict, shared_data.rr_dict, shared_data.jh_dict, shared_data.jr_dict]
+    func = [lambda:rhget_result(shared_data),
+            lambda:rrget_result(shared_data),
+            lambda:jhget_result(shared_data),
+            lambda:jrget_result(shared_data)]
     
     # 创建label和combobox
     for i in range(4):
-        title_label = tkinter.Label(frame[i], text=title[i], font=('黑体',18,'bold'), bg='#DAE3F3',
+        title_label = tkinter.Label(frame[i], text=shared_data.title[i], font=('黑体',18,'bold'), bg='#DAE3F3',
                                     foreground='#0a1220')
         title_label.grid(row=0, column=0, columnspan=2)
         j=1
@@ -134,7 +136,7 @@ def query_window():
             ddict[i][key].current(0)
             ddict[i][key].grid(row=j, column=1)
             j = j+1
-        run_button = tkinter.Button(frame[i], text=f'{title[i]}\n获取结果', font=('宋体',14,'bold'), 
+        run_button = tkinter.Button(frame[i], text=f'{shared_data.title[i]}\n获取结果', font=('宋体',14,'bold'), 
                                     bg='#acafc9', command=func[i])
         run_button.grid(row=j, column=0, columnspan=2)
         
