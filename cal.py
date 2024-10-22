@@ -111,13 +111,15 @@ rrdata = {
     ('0.2MPa', '8565rpm', '无织构', '3mm'):11,
     ('0.3MPa', '9210rpm', '无织构', '3mm'):12
 }
+ddict = [rh_dict, rr_dict, jh_dict, jr_dict]
+
 
 def run_fluent():
     print('fluent thread starting...')
     solver = pyfluent.launch_fluent(product_version='22.2.0', mode='solver')
     solver.tui.file.read_case("source\\case\\1.1.cas")
     print('fluent started')
-    calInformationLabel.config(text='fluent started')
+    calInformationLabel.config(text='可计算')
 
 # 开启新线程：fluent
 def start_fluent_thread():
@@ -141,15 +143,30 @@ def validate_input(entry, i):
         tkinter.messagebox.showwarning('提示', '请输入数字。')
         return False
 
+# 获取frame中的输入并组合成列表
+def frameInput(frameIndex):
+    key = ddict[frameIndex].keys()
+    input = [ddict[frameIndex][i].get() for i in key]
+    return input
+
 # 开启并进行fluent计算
-def rhget_result():
+def rhget_result(input):
     print('开始计算rh')
-def rrget_result():
+    # 获取输入数据
+    print(input)
+    
+def rrget_result(input):
     print('开始计算rr')
-def jhget_result():
+    print(input)
+    
+def jhget_result(input):
     print('开始计算jh')
-def jrget_result():
+    print(input)
+    
+def jrget_result(input):
     print('开始计算jr')
+    print(input)
+    
     
 def cal_window():
     global calMaster, calInformationLabel
@@ -157,10 +174,10 @@ def cal_window():
     calMaster.title('机械密封装置仿真APP:流体传热仿真')
     calMaster.geometry('1000x700')
     calMaster.resizable(False, False)
-    calInformationLabel = tkinter.Label(calMaster, text='initial')
+    calInformationLabel = tkinter.Label(calMaster, text='等待fluent启动')
     calInformationLabel.grid(row=3, column=0, columnspan=4)
 
-    start_fluent_thread()
+    # start_fluent_thread()
 
     CalTitle = tkinter.PhotoImage(file='source\\img\\titleCal.png')
     title_label = tkinter.Label(calMaster, image=CalTitle)
@@ -188,39 +205,49 @@ def cal_window():
     frame4.grid(row=1, column=3)
 
     frame = [frame1, frame2, frame3, frame4]
-    
-    ddict = [rh_dict, rr_dict, jh_dict, jr_dict]
     func = [rhget_result, rrget_result, jhget_result, jrget_result]
     
     # 创建label和combobox
-    for i in range(4):
-        title_label = tkinter.Label(frame[i], text=title[i], font=('黑体',18,'bold'), bg='#DAE3F3',
-                                    foreground='#0a1220')
+    for frameIndex in range(4):
+        title_label = tkinter.Label(frame[frameIndex], text=title[frameIndex], font=('黑体',18,'bold'), bg='#DAE3F3', foreground='#0a1220')
         title_label.grid(row=0, column=0, columnspan=2)
         j=1
-        for key, value in ddict[i].items():
-            label = tkinter.Label(frame[i], text=key, pady=6, bg='#DAE3F3')
+        
+        for key, value in ddict[frameIndex].items():
+            label = tkinter.Label(frame[frameIndex], text=key, pady=6, bg='#DAE3F3')
             label.grid(row=j, column=0)
             if key in ['压力', '转速']:
-                ddict[i][key] = tkinter.Entry(frame[i], width=13, validate='focusout', 
-                                              validatecommand=lambda i=i, key=key:validate_input(ddict[i][key], i))
-                ddict[i][key].insert(0, '0.00')
-                ddict[i][key].grid(row=j, column=1)
+                ddict[frameIndex][key] = tkinter.Entry(frame[frameIndex], width=13, validate='focusout', 
+                                              validatecommand=lambda i=frameIndex, key=key:validate_input(ddict[i][key], i))
+                ddict[frameIndex][key].insert(0, '0.00')
+                ddict[frameIndex][key].grid(row=j, column=1)
                 j = j+1
             else:
-                ddict[i][key] = ttk.Combobox(frame[i], width=10)
-                ddict[i][key]['values'] = value
-                ddict[i][key].current(0)
-                ddict[i][key].grid(row=j, column=1)
+                ddict[frameIndex][key] = ttk.Combobox(frame[frameIndex], width=10)
+                ddict[frameIndex][key]['values'] = value
+                ddict[frameIndex][key].current(0)
+                ddict[frameIndex][key].grid(row=j, column=1)
                 j = j+1
-        run_button = tkinter.Button(frame[i], text=f'{title[i]}\n获取结果', font=('宋体',14,'bold'), 
-                                    bg='#acafc9', command=func[i])
+        
+        # if frameIndex != 3:
+        run_button = tkinter.Button(frame[frameIndex], 
+                                    text=f'{title[frameIndex]}\n获取结果', 
+                                    font=('宋体',14,'bold'), 
+                                    bg='#acafc9', 
+                                    command=lambda frameIndex=frameIndex:func[frameIndex](frameInput(frameIndex)))
+        run_button.grid(row=j, column=0, columnspan=2)
+        # else:
+        #     run_button = tkinter.Button(frame[frameIndex], 
+        #                                 text=f'{title[frameIndex]}\n获取结果', 
+        #                                 font=('宋体',14,'bold'), 
+        #                                 bg='#acafc9', 
+        #                                 command=lambda frameIndex=frameIndex:func[frameIndex](ddict[frameIndex]['转速']))
         run_button.grid(row=j, column=0, columnspan=2)
         
     QueryBottom = tkinter.PhotoImage(file='source\\img\\bottomQuery.png')
     bottom_label = tkinter.Label(calMaster, image=QueryBottom)
     bottom_label.grid(row=2, column=0, columnspan=4)
     
-    calMaster.protocol('WM_DELETE_WINDOW', on_closing)
+    # calMaster.protocol('WM_DELETE_WINDOW', on_closing)
     
     calMaster.mainloop()

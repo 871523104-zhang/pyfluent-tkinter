@@ -11,3 +11,23 @@ Information: The server has started and is running.
 
 Build Time: May 27 2022 08:52:58 EDT  Build Id: 10212  
  
+Connected License Server List:	1055@localhost
+
+*********************************************
+Info: Your license enables 4-way parallel execution.
+For faster simulations, please start the application with the appropriate parallel options.
+*********************************************
+
+Host spawning Node 0 on machine "DESKTOP-6O68A19" (win64).
+
+---------------------------------------------------------------------------------
+ID    Hostname         Core  O.S.         PID    Vendor                         
+---------------------------------------------------------------------------------
+n0    DESKTOP-6O68A19  1/12  Windows-x64  34752  Intel(R) Core(TM) i7-8700      
+host  DESKTOP-6O68A19        Windows-x64  18332  Intel(R) Core(TM) i7-8700      
+
+MPI Option Selected: intel
+---------------------------------------------------------------------------------
+
+Cleanup script file is F:\\yuri_pyfulent_tkinter\\cleanup-fluent-DESKTOP-6O68A19-18332.bat
+
