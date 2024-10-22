@@ -4,6 +4,7 @@ from cal import cal_window
 from rebianixng import rebianixng_window
 from minganixng import minganxing_window
 
+
 master = tkinter.Tk()
 master.title('机械密封装置仿真APP')
 master.geometry('525x300')
@@ -22,4 +23,7 @@ rebianxing_open_button.grid(row=2, column=0)
 minganxing_open_button = tkinter.Button(master, text='参数敏感性及参数优化仿真', width=30, height=3, font=40, command=minganxing_window)
 minganxing_open_button.grid(row=2, column=1)
 
+
+print('main app is closing...')
 master.mainloop()
+print('main app has ended.')

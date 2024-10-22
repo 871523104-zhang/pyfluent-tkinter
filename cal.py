@@ -1,8 +1,7 @@
 import tkinter
 from tkinter import ttk
-from threading import Thread
+import threading as Thread
 import ansys.fluent.core as pyfluent
-from data import title, rhdata, rrdata, rh_dict, rr_dict, jh_dict, jr_dict
 
 # 资源：有对应模型的cas文件（非全部cas）
 title = ['燃油增压泵滑油端', '燃油增压泵燃油端', '加力燃油泵滑油端', '加力燃油泵燃油端']
@@ -113,15 +112,24 @@ rrdata = {
     ('0.3MPa', '9210rpm', '无织构', '3mm'):12
 }
 
-
-
 def run_fluent():
+    print('fluent thread starting...')
     solver = pyfluent.launch_fluent(product_version='22.2.0', mode='solver')
     solver.tui.file.read_case("source\\case\\1.1.cas")
+    print('fluent started')
+    calInformationLabel.config(text='fluent started')
 
 # 开启新线程：fluent
-def start_fluent():
-    Thread(target=run_fluent).start()
+def start_fluent_thread():
+    fluentThread = Thread.Thread(target=run_fluent, daemon=True)
+    fluentThread.start()
+    print('fluent thread has been started in the background')
+    return fluentThread
+    
+def on_closing():
+    print('main window is closing, stop all background threads...')
+    calMaster.destroy()
+    print('main window ihas been destroyed')
     
 # 验证输入合法（仅数字）
 def validate_input(entry, i):
@@ -144,31 +152,36 @@ def jrget_result():
     print('开始计算jr')
     
 def cal_window():
-    master = tkinter.Toplevel()
-    master.title('机械密封装置仿真APP:流体传热仿真')
-    master.geometry('1000x600')
-    master.resizable(False, False)
+    global calMaster, calInformationLabel
+    calMaster = tkinter.Toplevel()
+    calMaster.title('机械密封装置仿真APP:流体传热仿真')
+    calMaster.geometry('1000x700')
+    calMaster.resizable(False, False)
+    calInformationLabel = tkinter.Label(calMaster, text='initial')
+    calInformationLabel.grid(row=3, column=0, columnspan=4)
+
+    start_fluent_thread()
 
     CalTitle = tkinter.PhotoImage(file='source\\img\\titleCal.png')
-    title_label = tkinter.Label(master, image=CalTitle)
+    title_label = tkinter.Label(calMaster, image=CalTitle)
     title_label.grid(row=0, column=0, columnspan=4)
     
-    frame1 = tkinter.Frame(master, bd=6, bg='#DAE3F3',relief='groove', height=350, width=230,
+    frame1 = tkinter.Frame(calMaster, bd=6, bg='#DAE3F3',relief='groove', height=350, width=230,
                            highlightcolor='red',
                            highlightthickness=2)
     frame1.grid_propagate(0)
     frame1.grid(row=1, column=0)
-    frame2 = tkinter.Frame(master, bd=6, bg='#DAE3F3',relief='groove', height=350, width=230,
+    frame2 = tkinter.Frame(calMaster, bd=6, bg='#DAE3F3',relief='groove', height=350, width=230,
                            highlightcolor='red',
                            highlightthickness=2)
     frame2.grid_propagate(0)
     frame2.grid(row=1, column=1)
-    frame3 = tkinter.Frame(master, bd=6, bg='#DAE3F3',relief='groove', height=350, width=230,
+    frame3 = tkinter.Frame(calMaster, bd=6, bg='#DAE3F3',relief='groove', height=350, width=230,
                            highlightcolor='red',
                            highlightthickness=2)
     frame3.grid_propagate(0)
     frame3.grid(row=1, column=2)
-    frame4 = tkinter.Frame(master, bd=6, bg='#DAE3F3',relief='groove', height=350, width=230,
+    frame4 = tkinter.Frame(calMaster, bd=6, bg='#DAE3F3',relief='groove', height=350, width=230,
                            highlightcolor='red',
                            highlightthickness=2)
     frame4.grid_propagate(0)
@@ -205,7 +218,9 @@ def cal_window():
         run_button.grid(row=j, column=0, columnspan=2)
         
     QueryBottom = tkinter.PhotoImage(file='source\\img\\bottomQuery.png')
-    bottom_label = tkinter.Label(master, image=QueryBottom)
+    bottom_label = tkinter.Label(calMaster, image=QueryBottom)
     bottom_label.grid(row=2, column=0, columnspan=4)
     
-    master.mainloop()
+    calMaster.protocol('WM_DELETE_WINDOW', on_closing)
+    
+    calMaster.mainloop()

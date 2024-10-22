@@ -2,7 +2,6 @@
 import tkinter
 from tkinter import ttk
 import tkinter.messagebox
-from data import rhdata, rrdata, rh_dict, rr_dict, jh_dict, jr_dict, title
 import os
 
 # 资源：结果图片
