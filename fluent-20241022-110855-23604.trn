@@ -31,3 +31,9 @@ MPI Option Selected: intel
 
 Cleanup script file is F:\\yuri_pyfulent_tkinter\\cleanup-fluent-DESKTOP-6O68A19-18332.bat
 
+> 
+===================================================================================
+=   BAD TERMINATION OF ONE OF YOUR APPLICATION PROCESSES
+=   RANK 0 PID 34752 RUNNING AT DESKTOP-6O68A19
+=   EXIT STATUS: 1073807364 (40010004)
+===================================================================================

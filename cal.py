@@ -113,25 +113,20 @@ rrdata = {
 }
 ddict = [rh_dict, rr_dict, jh_dict, jr_dict]
 
-
-def run_fluent():
-    print('fluent thread starting...')
-    solver = pyfluent.launch_fluent(product_version='22.2.0', mode='solver')
-    solver.tui.file.read_case("source\\case\\1.1.cas")
-    print('fluent started')
-    calInformationLabel.config(text='可计算')
-
-# 开启新线程：fluent
-def start_fluent_thread():
-    fluentThread = Thread.Thread(target=run_fluent, daemon=True)
-    fluentThread.start()
-    print('fluent thread has been started in the background')
-    return fluentThread
-    
-def on_closing():
-    print('main window is closing, stop all background threads...')
-    calMaster.destroy()
-    print('main window ihas been destroyed')
+# 线程启动标志
+threadStart = False
+class myThread(Thread.Thread):
+    def run(self):
+        global threadStart
+        if threadStart == False:
+            print('fluent thread starting...')
+            self.solver = pyfluent.launch_fluent(product_version='22.2.0', mode='solver')
+            self.solver.tui.file.read_case("source\\case\\1.1.cas")
+            print('fluent started')
+            calInformationLabel.config(text='可计算')
+            threadStart = True
+        else:
+            pass
     
 # 验证输入合法（仅数字）
 def validate_input(entry, i):
@@ -150,11 +145,17 @@ def frameInput(frameIndex):
     return input
 
 # 开启并进行fluent计算
-def rhget_result(input):
+def rhget_result(input, iteration, fluentThread):
     print('开始计算rh')
     # 获取输入数据
-    print(input)
-    
+    print(input, iteration)
+    fluentThread.run()
+    if input[0] == '1':
+        fluentThread.solver.tui.define.boundary_conditions.set.velocity_inlet('inlet', '()', 'mixture', 'vmag', 'n', 24.7, 'q')
+        fluentThread.solver.tui.solve.initialize.hyb_initialization()
+        fluentThread.solver.tui.solve.iterate(iteration)
+        print('calfinished')
+        
 def rrget_result(input):
     print('开始计算rr')
     print(input)
@@ -177,7 +178,8 @@ def cal_window():
     calInformationLabel = tkinter.Label(calMaster, text='等待fluent启动')
     calInformationLabel.grid(row=3, column=0, columnspan=4)
 
-    # start_fluent_thread()
+    # 打开fluent进程
+    fluentThread = myThread()
 
     CalTitle = tkinter.PhotoImage(file='source\\img\\titleCal.png')
     title_label = tkinter.Label(calMaster, image=CalTitle)
@@ -228,26 +230,21 @@ def cal_window():
                 ddict[frameIndex][key].current(0)
                 ddict[frameIndex][key].grid(row=j, column=1)
                 j = j+1
-        
-        # if frameIndex != 3:
+
+        iterationLabel = tkinter.Label(frame[frameIndex], text='迭代次数')
+        iterationLabel.grid(row=j, column=0)
+        iterationSpinboxValue = tkinter.StringVar()
+        iterationSpinbox = tkinter.Spinbox(frame[frameIndex], textvariable=iterationSpinboxValue)
+        iterationSpinbox.grid(row=j, column=1)
         run_button = tkinter.Button(frame[frameIndex], 
                                     text=f'{title[frameIndex]}\n获取结果', 
                                     font=('宋体',14,'bold'), 
                                     bg='#acafc9', 
-                                    command=lambda frameIndex=frameIndex:func[frameIndex](frameInput(frameIndex)))
-        run_button.grid(row=j, column=0, columnspan=2)
-        # else:
-        #     run_button = tkinter.Button(frame[frameIndex], 
-        #                                 text=f'{title[frameIndex]}\n获取结果', 
-        #                                 font=('宋体',14,'bold'), 
-        #                                 bg='#acafc9', 
-        #                                 command=lambda frameIndex=frameIndex:func[frameIndex](ddict[frameIndex]['转速']))
-        run_button.grid(row=j, column=0, columnspan=2)
+                                    command=lambda frameIndex=frameIndex:func[frameIndex](frameInput(frameIndex), iterationSpinboxValue.get(), fluentThread))
+        run_button.grid(row=j+1, column=0, columnspan=2)
         
     QueryBottom = tkinter.PhotoImage(file='source\\img\\bottomQuery.png')
     bottom_label = tkinter.Label(calMaster, image=QueryBottom)
     bottom_label.grid(row=2, column=0, columnspan=4)
-    
-    # calMaster.protocol('WM_DELETE_WINDOW', on_closing)
     
     calMaster.mainloop()
