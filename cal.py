@@ -27,6 +27,19 @@ jr_dict = {'转速':('18835rpm', '21255rpm', '22600rpm', '23950rpm', '25560rpm',
            '织构':('无织构', '激光脸(新)'),
            '进口管径':('1mm', '1.5mm')}
 
+rhmodel = {
+    ('无织构', '无节流环', '0.5mm', '38°', '1'):1,
+    ('激光脸', '无节流环', '0.5mm', '38°', '1'):10,
+    ('无织构', '0.1mm', '0.5mm', '38°', '1'):19,
+    ('无织构', '0.2mm', '0.5mm', '38°', '1'):28,
+    ('无织构', '0.3mm', '0.5mm', '38°', '1'):37,
+    ('无织构', '无节流环', '0.6mm', '38°', '1'):46,
+    ('无织构', '无节流环', '0.7mm', '38°', '1'):55,
+    ('无织构', '无节流环', '0.5mm', '35°', '1'):64,
+    ('无织构', '无节流环', '0.5mm', '41°', '1'):65,
+    ('无织构', '无节流环', '0.5mm', '38°', '2'):66,
+    ('无织构', '无节流环', '0.5mm', '38°', '3'):67
+}
 rhdata = {
     ('0.1MPa', '6630rpm', '无织构', '无节流环', '0.5mm', '38°', '1'):1,
     ('0.1MPa', '8565rpm', '无织构', '无节流环', '0.5mm', '38°', '1'):2,
@@ -94,7 +107,7 @@ rhdata = {
     ('0.5MPa', '9210rpm', '无织构', '无节流环', '0.5mm', '35°', '1'):64,
     ('0.5MPa', '9210rpm', '无织构', '无节流环', '0.5mm', '41°', '1'):65,
     ('0.5MPa', '9210rpm', '无织构', '无节流环', '0.5mm', '38°', '2'):66,
-    ('0.5MPa', '9210rpm', '无织构', '无节流环', '0.5mm', '38°', '2'):67,
+    ('0.5MPa', '9210rpm', '无织构', '无节流环', '0.5mm', '38°', '3'):67,
 }
 
 rrdata = {
@@ -116,13 +129,12 @@ ddict = [rh_dict, rr_dict, jh_dict, jr_dict]
 # 线程启动标志
 threadStart = False
 class myThread(Thread.Thread):
+    def __init__(self):
+        self.solver = None
     def run(self):
         global threadStart
-        if threadStart == False:
-            print('fluent thread starting...')
+        if not threadStart:
             self.solver = pyfluent.launch_fluent(product_version='22.2.0', mode='solver')
-            self.solver.tui.file.read_case("source\\case\\1.1.cas")
-            print('fluent started')
             calInformationLabel.config(text='可计算')
             threadStart = True
         else:
@@ -138,23 +150,32 @@ def validate_input(entry, i):
         tkinter.messagebox.showwarning('提示', '请输入数字。')
         return False
 
-# 获取frame中的输入并组合成列表
+# 获取frame中的输入并组合成元组
 def frameInput(frameIndex):
     key = ddict[frameIndex].keys()
-    input = [ddict[frameIndex][i].get() for i in key]
+    #######################################################
+    input = (ddict[frameIndex][i].get() for i in key)
     return input
 
 # 开启并进行fluent计算
 def rhget_result(input, iteration, fluentThread):
-    print('开始计算rh')
-    # 获取输入数据
-    print(input, iteration)
-    fluentThread.run()
-    if input[0] == '1':
-        fluentThread.solver.tui.define.boundary_conditions.set.velocity_inlet('inlet', '()', 'mixture', 'vmag', 'n', 24.7, 'q')
-        fluentThread.solver.tui.solve.initialize.hyb_initialization()
-        fluentThread.solver.tui.solve.iterate(iteration)
-        print('calfinished')
+    partial_tuple = input
+    try:
+        rhmodel[partial_tuple]
+        print(f'找到对应值:{rhmodel[partial_tuple]}')
+        calInformationLabel.config(text='等待fluent')
+        fluentThread.run()
+        if input[0] == '1':
+            fluentThread.solver.tui.file.read_case("source\\case\\1.1.cas")
+            fluentThread.solver.tui.define.boundary_conditions.set.velocity_inlet('inlet', '()', 'mixture', 'vmag', 'n', 24.7, 'q')
+            fluentThread.solver.tui.solve.initialize.hyb_initialization()
+            fluentThread.solver.tui.solve.iterate(iteration)
+            print('calfinished')
+    except:
+        print('没找到')
+        print(partial_tuple)
+        tkinter.messagebox.showwarning('警告', '无模型。')
+        
         
 def rrget_result(input):
     print('开始计算rr')
@@ -173,10 +194,10 @@ def cal_window():
     global calMaster, calInformationLabel
     calMaster = tkinter.Toplevel()
     calMaster.title('机械密封装置仿真APP:流体传热仿真')
-    calMaster.geometry('1000x700')
+    calMaster.geometry('1000x625')
     calMaster.resizable(False, False)
     calInformationLabel = tkinter.Label(calMaster, text='等待fluent启动')
-    calInformationLabel.grid(row=3, column=0, columnspan=4)
+    calInformationLabel.grid(row=2, column=0, columnspan=4)
 
     # 打开fluent进程
     fluentThread = myThread()
@@ -185,22 +206,22 @@ def cal_window():
     title_label = tkinter.Label(calMaster, image=CalTitle)
     title_label.grid(row=0, column=0, columnspan=4)
     
-    frame1 = tkinter.Frame(calMaster, bd=6, bg='#DAE3F3',relief='groove', height=350, width=230,
+    frame1 = tkinter.Frame(calMaster, bd=6, bg='#DAE3F3',relief='groove', height=360, width=230,
                            highlightcolor='red',
                            highlightthickness=2)
     frame1.grid_propagate(0)
     frame1.grid(row=1, column=0)
-    frame2 = tkinter.Frame(calMaster, bd=6, bg='#DAE3F3',relief='groove', height=350, width=230,
+    frame2 = tkinter.Frame(calMaster, bd=6, bg='#DAE3F3',relief='groove', height=360, width=230,
                            highlightcolor='red',
                            highlightthickness=2)
     frame2.grid_propagate(0)
     frame2.grid(row=1, column=1)
-    frame3 = tkinter.Frame(calMaster, bd=6, bg='#DAE3F3',relief='groove', height=350, width=230,
+    frame3 = tkinter.Frame(calMaster, bd=6, bg='#DAE3F3',relief='groove', height=360, width=230,
                            highlightcolor='red',
                            highlightthickness=2)
     frame3.grid_propagate(0)
     frame3.grid(row=1, column=2)
-    frame4 = tkinter.Frame(calMaster, bd=6, bg='#DAE3F3',relief='groove', height=350, width=230,
+    frame4 = tkinter.Frame(calMaster, bd=6, bg='#DAE3F3',relief='groove', height=360, width=230,
                            highlightcolor='red',
                            highlightthickness=2)
     frame4.grid_propagate(0)
@@ -231,10 +252,11 @@ def cal_window():
                 ddict[frameIndex][key].grid(row=j, column=1)
                 j = j+1
 
-        iterationLabel = tkinter.Label(frame[frameIndex], text='迭代次数')
+        iterationLabel = tkinter.Label(frame[frameIndex], text='迭代次数', bg='#DAE3F3', foreground='#0a1220')
         iterationLabel.grid(row=j, column=0)
         iterationSpinboxValue = tkinter.StringVar()
-        iterationSpinbox = tkinter.Spinbox(frame[frameIndex], textvariable=iterationSpinboxValue)
+        iterationSpinbox = tkinter.Spinbox(frame[frameIndex], width=11,
+                                           textvariable=iterationSpinboxValue)
         iterationSpinbox.grid(row=j, column=1)
         run_button = tkinter.Button(frame[frameIndex], 
                                     text=f'{title[frameIndex]}\n获取结果', 
@@ -245,6 +267,6 @@ def cal_window():
         
     QueryBottom = tkinter.PhotoImage(file='source\\img\\bottomQuery.png')
     bottom_label = tkinter.Label(calMaster, image=QueryBottom)
-    bottom_label.grid(row=2, column=0, columnspan=4)
+    bottom_label.grid(row=3, column=0, columnspan=4)
     
     calMaster.mainloop()
